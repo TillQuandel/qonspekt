@@ -376,14 +376,18 @@
     </div>
 
     <!-- Provider selector -->
-    <div style="display:flex;gap:8px;margin-bottom:12px">
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button id="provFree" onclick="setProvider('free')"
+        style="flex:2;min-width:160px;padding:12px;border-radius:8px;border:2px solid var(--success);background:rgba(34,211,160,0.1);color:var(--success);font-weight:800;font-size:14px;cursor:pointer;transition:all 0.15s">
+        ⚡ Try free — no key needed
+      </button>
       <button id="provClaude" onclick="setProvider('claude')"
-        style="flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--glow);color:var(--accent2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
+        style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
         Claude
       </button>
       <button id="provGroq" onclick="setProvider('groq')"
         style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
-        OpenRouter <span style="font-size:11px;color:var(--success);font-weight:400">FREE</span>
+        OpenRouter
       </button>
       <button id="provGemini" onclick="setProvider('gemini')"
         style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
@@ -487,7 +491,7 @@ const $ = id => document.getElementById(id);
 if (!localStorage.getItem('qonspekt_ack')) $('disclaimer').style.display = 'block';
 
 // Provider
-let provider = localStorage.getItem('qonspekt_provider') || 'claude';
+let provider = localStorage.getItem('qonspekt_provider') || 'free';
 
 function setProvider(p) {
   provider = p;
@@ -495,18 +499,26 @@ function setProvider(p) {
   const isClaude = p === 'claude';
   const isGroq = p === 'groq';
 
-  const activeStyle = (color) => `flex:1;padding:10px;border-radius:8px;border:2px solid ${color};background:${color}22;color:${color};font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s`;
-  const inactiveStyle = 'flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s';
+  const isFree = p === 'free';
+  const activeStyle = (color, big) => big
+    ? `flex:2;min-width:160px;padding:12px;border-radius:8px;border:2px solid ${color};background:${color}1a;color:${color};font-weight:800;font-size:14px;cursor:pointer;transition:all 0.15s`
+    : `flex:1;padding:10px;border-radius:8px;border:2px solid ${color};background:${color}22;color:${color};font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s`;
+  const inactiveStyle = (big) => big
+    ? 'flex:2;min-width:160px;padding:12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:14px;cursor:pointer;transition:all 0.15s'
+    : 'flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s';
 
-  $('provClaude').style.cssText = isClaude ? activeStyle('var(--accent)') : inactiveStyle;
+  $('provFree').style.cssText = isFree ? activeStyle('var(--success)', true) : inactiveStyle(true);
+  $('provFree').innerHTML = '⚡ Try free — no key needed';
+  $('provClaude').style.cssText = isClaude ? activeStyle('var(--accent)', false) : inactiveStyle(false);
   $('provClaude').innerHTML = 'Claude';
-  $('provGroq').style.cssText = isGroq ? activeStyle('var(--success)') : inactiveStyle;
-  $('provGroq').innerHTML = 'Groq <span style="font-size:11px;font-weight:400">FREE</span>';
-  $('provGemini').style.cssText = (!isClaude && !isGroq) ? activeStyle('var(--success)') : inactiveStyle;
+  $('provGroq').style.cssText = isGroq ? activeStyle('var(--success)', false) : inactiveStyle(false);
+  $('provGroq').innerHTML = 'OpenRouter';
+  $('provGemini').style.cssText = (!isFree && !isClaude && !isGroq) ? activeStyle('var(--success)', false) : inactiveStyle(false);
   $('provGemini').innerHTML = 'Gemini';
 
   // Key field
   const labels = {
+    free:   ['', '', '', '', ''],
     claude: ['Claude API Key', 'https://console.anthropic.com/settings/keys', 'Get key ↗', 'sk-ant-...', ''],
     groq:   ['OpenRouter API Key (Free)', 'https://openrouter.ai/keys', 'Get free key ↗', 'sk-or-...', '✓ Free models available (Llama, Gemma). Sign up with Google — no credit card needed.'],
     gemini: ['Gemini API Key', 'https://aistudio.google.com/apikey', 'Get key ↗', 'AIza...', 'Note: some Google accounts have free tier locked. Try OpenRouter if you see quota errors.'],
@@ -522,17 +534,21 @@ function setProvider(p) {
   // Model selector
   const sel = $('modelSel');
   const models = {
+    free:   '<option value="openai">Powered by Pollinations.ai</option>',
     claude: '<option value="claude-haiku-4-5-20251001">Haiku 4.5 — fast &amp; cheap</option><option value="claude-sonnet-4-6">Sonnet 4.6 — best quality</option>',
     groq:   '<option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B — free</option><option value="google/gemma-3-12b-it:free">Gemma 3 12B — free</option><option value="mistralai/mistral-7b-instruct:free">Mistral 7B — free</option>',
     gemini: '<option value="gemini-2.0-flash">Gemini 2.0 Flash — free tier</option><option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash — higher quality</option>',
   };
   sel.innerHTML = models[p];
-  const hints = { claude: '~$0.003 / article with Haiku', groq: 'Free models — no credit card needed', gemini: 'Free up to 15 req/min (account dependent)' };
+  const hints = { free: 'No account needed — powered by Pollinations.ai', claude: '~$0.003 / article with Haiku', groq: 'Free models — no credit card needed', gemini: 'Free up to 15 req/min (account dependent)' };
   $('costHint').textContent = hints[p];
 
   // Reload saved key for this provider
   const saved = localStorage.getItem('qonspekt_key_' + p);
   $('apiKey').value = saved || '';
+  // Hide key field for free provider
+  const keyWrap = document.querySelector('.apikey-wrap');
+  if (keyWrap) keyWrap.style.display = isFree ? 'none' : '';
   syncDot();
 }
 
@@ -613,7 +629,7 @@ $('genBtn').addEventListener('click', generate);
 
 async function generate() {
   const apiKey = keyInput.value.trim();
-  if (!apiKey) { showError('Enter your Claude API key above.'); return; }
+  if (!apiKey && provider !== 'free') { showError('Enter your API key above.'); return; }
   const content = activeTab === 'paste' ? $('pasteContent').value.trim() : $('urlContent').value.trim();
   const sourceUrl = activeTab === 'url' ? $('urlInput').value.trim() : '';
   if (!content || content.length < 100) { showError('Paste some article content first.'); return; }
@@ -622,7 +638,8 @@ async function generate() {
   showLoading('Sending to Claude API…'); $('output').innerHTML = '';
 
   try {
-    const notes = provider === 'gemini' ? await callGemini(apiKey, content, sourceUrl)
+    const notes = provider === 'free' ? await callFree(content, sourceUrl)
+      : provider === 'gemini' ? await callGemini(apiKey, content, sourceUrl)
       : provider === 'groq' ? await callGroq(apiKey, content, sourceUrl)
       : await callClaude(apiKey, content, sourceUrl);
     renderNotes(notes); hideStatus();
@@ -659,6 +676,33 @@ Return ONLY a valid JSON array, no markdown fences:
   const raw = data.content?.[0]?.text || '';
   const match = raw.match(/\[[\s\S]*\]/);
   if (!match) throw new Error('Unexpected response. Try again or switch to Sonnet 4.6.');
+  const notes = JSON.parse(match[0]);
+  if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned. Try with more content.');
+  return notes;
+}
+
+async function callFree(content, sourceUrl) {
+  const system = `You are an expert at creating atomic notes for Obsidian using the Zettelkasten method.
+Extract 3-5 key concepts and write one atomic note per concept. Each note uses [[wikilinks]] to connect related concepts. 100-200 words per note. Tags: 2-3 tags, lowercase. End with ## Sources.
+Return ONLY a valid JSON array, no markdown fences, no extra text:
+[{"filename":"slug.md","title":"Title","tags":["tag"],"preview":"One sentence.","content":"---\\ntitle: Title\\ntags: [tag1, tag2]\\naliases: []\\n---\\n# Title\\n\\nBody with [[wikilinks]]...\\n\\n## Sources\\n- URL"}]`;
+  const user = (sourceUrl ? `Source: ${sourceUrl}\n\n` : '') + `Content:\n${content.slice(0, 6000)}`;
+
+  const res = await fetch('https://text.pollinations.ai/openai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'openai',
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+      seed: Date.now() % 10000
+    })
+  });
+
+  if (!res.ok) throw new Error('Free service temporarily unavailable. Try again in a moment.');
+  const data = await res.json();
+  const raw = data.choices?.[0]?.message?.content || '';
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('Could not parse response. Try again.');
   const notes = JSON.parse(match[0]);
   if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned. Try with more content.');
   return notes;
