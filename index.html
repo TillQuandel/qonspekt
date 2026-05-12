@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qonspekt — Turn any article into Obsidian notes</title>
+  <meta name="description" content="Paste any article, get atomic Obsidian-ready Markdown notes in seconds. Free. No account. Your Claude API key stays in your browser.">
+  <meta property="og:title" content="Qonspekt — Article to Obsidian Notes">
+  <meta property="og:description" content="Paste any article, get atomic Obsidian-ready notes in seconds. Free. No account. BYOK.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dertill123.github.io/qonspekt/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Qonspekt — Article to Obsidian Notes">
+  <meta name="twitter:description" content="Paste any article, get Obsidian atomic notes in seconds. Free, no account, BYOK.">
+  <link rel="canonical" href="https://dertill123.github.io/qonspekt/">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237c3aed'/><text x='16' y='22' font-family='monospace' font-weight='700' font-size='18' fill='white' text-anchor='middle'>Q</text></svg>">
+  <meta name="twitter:description" content="Turn any article into atomic Obsidian-ready notes. Free, no account, your API key stays in your browser.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#07070f; --surface:#0e0e1a; --surface2:#171724; --border:#22222f; --border2:#2d2d3d;
+      --accent:#7c3aed; --accent2:#a78bfa; --accent3:#c4b5fd; --glow:rgba(124,58,237,0.18);
+      --text:#ededf5; --muted:#6a6a88; --muted2:#9090b0; --success:#22d3a0; --radius:12px;
+      --mono:'JetBrains Mono',monospace;
+    }
+    html { scroll-behavior: smooth; }
+    body { background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif; line-height:1.6; overflow-x:hidden; }
+    a { color:inherit; text-decoration:none; }
+
+    /* NAV */
+    nav { position:fixed; top:0; left:0; right:0; z-index:100; backdrop-filter:blur(20px); border-bottom:1px solid var(--border); background:rgba(7,7,15,0.85); }
+    .nav-inner { max-width:1100px; margin:0 auto; padding:0 24px; height:60px; display:flex; align-items:center; justify-content:space-between; }
+    .logo { display:flex; align-items:center; gap:10px; }
+    .logo-mark { width:30px; height:30px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; font-size:13px; color:#fff; }
+    .logo-name { font-size:17px; font-weight:700; letter-spacing:-0.4px; }
+    .nav-cta { background:var(--accent); color:#fff; font-size:13px; font-weight:600; padding:8px 18px; border-radius:8px; transition:all 0.15s; border:none; cursor:pointer; }
+    .nav-cta:hover { background:#6d28d9; transform:translateY(-1px); }
+
+    /* HERO */
+    .hero { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:80px 24px 60px; position:relative; overflow:hidden; }
+    .hero-glow { position:absolute; top:20%; left:50%; transform:translateX(-50%); width:700px; height:400px; background:radial-gradient(ellipse,rgba(124,58,237,0.2) 0%,transparent 70%); pointer-events:none; }
+    .hero-inner { max-width:820px; width:100%; display:grid; gap:52px; position:relative; z-index:1; }
+    .hero-text { text-align:center; }
+    .hero-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(124,58,237,0.12); border:1px solid rgba(124,58,237,0.25); color:var(--accent2); font-size:12px; font-weight:500; padding:4px 12px; border-radius:20px; margin-bottom:28px; }
+    .hero-badge span { width:6px; height:6px; background:var(--accent2); border-radius:50%; }
+    h1 { font-size:clamp(36px,7vw,62px); font-weight:800; letter-spacing:-2px; line-height:1.1; margin-bottom:20px; }
+    h1 em { font-style:normal; background:linear-gradient(135deg,var(--accent2) 0%,var(--accent3) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .hero-sub { font-size:18px; color:var(--muted2); max-width:520px; margin:0 auto 36px; line-height:1.65; }
+    .hero-ctas { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .btn-hero { padding:13px 28px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; border:none; transition:all 0.15s; display:inline-flex; align-items:center; gap:8px; }
+    .btn-hero-primary { background:linear-gradient(135deg,var(--accent),#6d28d9); color:#fff; box-shadow:0 4px 20px rgba(124,58,237,0.35); }
+    .btn-hero-primary:hover { transform:translateY(-2px); box-shadow:0 6px 28px rgba(124,58,237,0.45); }
+    .btn-hero-ghost { background:var(--surface); color:var(--muted2); border:1px solid var(--border2); }
+    .btn-hero-ghost:hover { border-color:var(--accent); color:var(--accent2); }
+
+    /* DEMO */
+    .demo-preview { background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius); overflow:hidden; }
+    .demo-bar { padding:10px 16px; background:var(--surface2); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+    .demo-dot { width:10px; height:10px; border-radius:50%; }
+    .demo-title { margin-left:8px; font-size:12px; color:var(--muted); font-family:var(--mono); }
+    .demo-notes { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1px; background:var(--border); }
+    .demo-note { background:var(--surface); padding:16px 18px; }
+    .demo-note-title { font-size:13px; font-weight:600; margin-bottom:6px; color:var(--accent3); }
+    .demo-note-body { font-size:12px; color:var(--muted2); line-height:1.6; }
+    .demo-note-tags { display:flex; gap:5px; margin-top:10px; flex-wrap:wrap; }
+    .demo-tag { font-size:10px; font-family:var(--mono); background:rgba(124,58,237,0.12); border:1px solid rgba(124,58,237,0.2); color:var(--accent2); padding:2px 7px; border-radius:20px; }
+
+    /* STATS */
+    .stats { border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:28px 24px; }
+    .stats-inner { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:24px; text-align:center; }
+    .stat-n { font-size:28px; font-weight:800; letter-spacing:-1px; }
+    .stat-n span { background:linear-gradient(90deg,var(--accent2),var(--accent3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .stat-l { font-size:13px; color:var(--muted); margin-top:2px; }
+
+    /* SECTIONS */
+    .section { max-width:1100px; margin:0 auto; padding:80px 24px; }
+    .section-label { font-size:12px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent2); margin-bottom:12px; }
+    .section-title { font-size:clamp(26px,4vw,38px); font-weight:800; letter-spacing:-1px; line-height:1.2; margin-bottom:16px; }
+    .section-sub { font-size:16px; color:var(--muted2); max-width:500px; line-height:1.65; margin-bottom:52px; }
+
+    /* FEATURES */
+    .feature-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; }
+    .feature-card { background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius); padding:28px; transition:border-color 0.2s,transform 0.2s; }
+    .feature-card:hover { border-color:rgba(124,58,237,0.4); transform:translateY(-2px); }
+    .feature-icon { width:44px; height:44px; background:var(--glow); border:1px solid rgba(124,58,237,0.25); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:18px; }
+    .feature-title { font-size:16px; font-weight:700; margin-bottom:8px; }
+    .feature-desc { font-size:14px; color:var(--muted2); line-height:1.65; }
+
+    /* STEPS */
+    .steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:32px; }
+    .step { display:flex; gap:20px; }
+    .step-num { width:36px; height:36px; flex-shrink:0; background:var(--glow); border:1px solid rgba(124,58,237,0.3); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--accent2); font-family:var(--mono); }
+    .step-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+    .step-desc { font-size:13px; color:var(--muted2); line-height:1.65; }
+
+    /* TOOL */
+    .tool-section { background:linear-gradient(to bottom,transparent,var(--surface) 10%,var(--surface) 90%,transparent); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:80px 24px; }
+    .tool-inner { max-width:780px; margin:0 auto; }
+    .tool-header { text-align:center; margin-bottom:40px; }
+
+    .apikey-wrap { margin-bottom:20px; }
+    .apikey-label { font-size:12px; color:var(--muted); margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
+    .apikey-label a { color:var(--accent2); font-size:11px; }
+    .apikey-label a:hover { text-decoration:underline; }
+    .apikey-row { display:flex; gap:8px; align-items:center; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; padding:0 12px; transition:border-color 0.15s; }
+    .apikey-row:focus-within { border-color:var(--accent); }
+    .apikey-row input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-family:var(--mono); font-size:13px; padding:11px 0; }
+    .apikey-row input::placeholder { color:var(--border2); }
+    .key-dot { width:7px; height:7px; border-radius:50%; background:var(--border2); flex-shrink:0; transition:background 0.2s; }
+    .key-dot.valid { background:var(--success); }
+    .btn-text { background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; padding:2px 4px; }
+    .btn-text:hover { color:var(--text); }
+
+    .input-card { background:var(--bg); border:1px solid var(--border2); border-radius:var(--radius); overflow:hidden; }
+    .tabs { display:flex; border-bottom:1px solid var(--border); background:var(--surface2); }
+    .tab { padding:12px 20px; font-size:13px; font-weight:500; color:var(--muted); cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.15s; }
+    .tab.active { color:var(--accent2); border-bottom-color:var(--accent); }
+    .tab-panel { display:none; padding:18px; }
+    .tab-panel.active { display:block; }
+    textarea,.url-inp { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; padding:12px 14px; outline:none; transition:border-color 0.15s; font-family:'Inter',sans-serif; line-height:1.6; }
+    textarea { resize:none; min-height:160px; }
+    textarea:focus,.url-inp:focus { border-color:var(--accent); }
+    textarea::placeholder,.url-inp::placeholder { color:var(--muted); }
+    .url-row { display:flex; gap:8px; }
+    .url-inp { flex:1; }
+    .btn-fetch { background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:0 16px; font-size:13px; cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+    .btn-fetch:hover { border-color:var(--accent); color:var(--accent2); }
+    .fetch-msg { margin-top:8px; font-size:12px; color:var(--muted); min-height:16px; }
+    .fetch-msg.ok { color:var(--success); }
+    .fetch-msg.err { color:#f87171; }
+    .textarea-url { margin-top:10px; min-height:110px; }
+
+    .options-row { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-top:1px solid var(--border); gap:12px; flex-wrap:wrap; }
+    .model-sel { background:var(--surface2); border:1px solid var(--border); color:var(--text); font-size:12px; padding:7px 10px; border-radius:7px; cursor:pointer; outline:none; }
+    .cost-hint { font-size:11px; color:var(--muted); }
+    .btn-generate { background:linear-gradient(135deg,var(--accent),#6d28d9); border:none; color:#fff; font-size:15px; font-weight:700; padding:11px 30px; border-radius:9px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:8px; box-shadow:0 4px 20px rgba(124,58,237,0.3); }
+    .btn-generate:hover { filter:brightness(1.1); transform:translateY(-1px); }
+    .btn-generate:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+    .spin { width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; display:none; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .status { margin:16px 0; padding:12px 16px; border-radius:9px; font-size:13px; display:none; }
+    .status.loading { display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border2); color:var(--muted); }
+    .status.error { display:block; background:rgba(248,113,113,0.07); border:1px solid rgba(248,113,113,0.25); color:#f87171; }
+
+    /* OUTPUT */
+    #output { margin-top:32px; }
+    .output-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+    .output-title { font-size:15px; font-weight:700; }
+    .output-count { font-size:13px; color:var(--muted); }
+    .output-actions { display:flex; gap:8px; }
+    .btn-out { background:var(--surface); border:1px solid var(--border2); color:var(--muted2); font-size:12px; font-weight:500; padding:7px 14px; border-radius:7px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:5px; }
+    .btn-out:hover { border-color:var(--accent); color:var(--accent2); }
+    .btn-out.success { border-color:var(--success); color:var(--success); }
+    .notes-list { display:grid; gap:12px; }
+    .note-card { background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius); overflow:hidden; transition:border-color 0.15s; }
+    .note-card:hover { border-color:#35354a; }
+    .note-head { padding:16px 18px 12px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .note-title { font-size:15px; font-weight:700; line-height:1.3; }
+    .note-file { font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:3px; }
+    .note-preview-text { font-size:13px; color:var(--muted2); margin-top:6px; line-height:1.5; }
+    .note-tags { display:flex; flex-wrap:wrap; gap:5px; padding:0 18px 12px; }
+    .ntag { font-size:10px; font-family:var(--mono); background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.2); color:var(--accent2); padding:2px 8px; border-radius:20px; }
+    .note-body { display:none; padding:14px 18px; font-family:var(--mono); font-size:12px; color:var(--muted2); line-height:1.7; border-top:1px solid var(--border); background:var(--surface2); white-space:pre-wrap; max-height:320px; overflow-y:auto; }
+    .note-body.open { display:block; }
+    .note-foot { padding:10px 18px; border-top:1px solid var(--border); display:flex; gap:8px; }
+    .btn-sm { font-size:12px; padding:5px 12px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; transition:all 0.15s; }
+    .btn-sm:hover { border-color:var(--accent); color:var(--accent2); }
+    .btn-sm.ok { border-color:var(--success); color:var(--success); }
+
+    /* FAQ */
+    .faq-list { display:grid; gap:12px; max-width:700px; }
+    .faq-item { background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius); }
+    .faq-q { padding:18px 20px; font-size:15px; font-weight:600; cursor:pointer; display:flex; justify-content:space-between; align-items:center; list-style:none; user-select:none; }
+    .faq-q::after { content:'+'; font-size:20px; color:var(--muted); transition:transform 0.2s; }
+    .faq-item.open .faq-q::after { transform:rotate(45deg); }
+    .faq-a { padding:0 20px; font-size:14px; color:var(--muted2); line-height:1.7; max-height:0; overflow:hidden; transition:max-height 0.3s ease,padding 0.3s; }
+    .faq-item.open .faq-a { max-height:300px; padding-bottom:18px; }
+
+    /* FOOTER */
+    footer { border-top:1px solid var(--border); padding:32px 24px; text-align:center; font-size:12px; color:var(--muted); }
+    footer a { color:var(--muted2); margin:0 8px; }
+    footer a:hover { color:var(--text); }
+
+    /* DISCLAIMER */
+    #disclaimer { display:none; background:rgba(26,20,10,0.95); border:1px solid #3a3010; border-radius:var(--radius); padding:18px 22px; margin-bottom:24px; font-size:13px; color:#b09040; line-height:1.6; }
+    #disclaimer strong { color:#d4b050; }
+    .btn-ack { display:inline-block; margin-top:12px; background:#2a2010; border:1px solid #4a4020; color:#d4b050; padding:6px 16px; border-radius:6px; font-size:12px; cursor:pointer; }
+
+    @media(max-width:640px){
+      h1{letter-spacing:-1px;}
+      .demo-notes{grid-template-columns:1fr;}
+      .options-row{flex-direction:column;align-items:stretch;}
+      .btn-generate{justify-content:center;}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">
+      <div class="logo-mark">Q</div>
+      <span class="logo-name">Qonspekt</span>
+    </div>
+    <button class="nav-cta" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">Try it free →</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-badge"><span></span> Free · No account · BYOK</div>
+      <h1>Every article becomes<br><em>atomic knowledge</em></h1>
+      <p class="hero-sub">Paste any article, get <strong>Obsidian-ready Markdown notes</strong> in seconds. Your Claude API key never leaves your browser.</p>
+      <div class="hero-ctas">
+        <button class="btn-hero btn-hero-primary" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">⬡ Generate notes free</button>
+        <a class="btn-hero btn-hero-ghost" href="https://github.com/DerTill123/qonspekt" target="_blank">★ Star on GitHub</a>
+      </div>
+    </div>
+    <div class="demo-preview">
+      <div class="demo-bar">
+        <div class="demo-dot" style="background:#f87171"></div>
+        <div class="demo-dot" style="background:#fbbf24"></div>
+        <div class="demo-dot" style="background:#34d399"></div>
+        <span class="demo-title">zettelkasten-method.md — 3 notes generated</span>
+      </div>
+      <div class="demo-notes">
+        <div class="demo-note">
+          <div class="demo-note-title">Zettelkasten Method</div>
+          <div class="demo-note-body">A note-taking system by Niklas Luhmann using atomic, interlinked cards to build a personal knowledge base. Each note contains exactly one idea and references related notes via explicit links.</div>
+          <div class="demo-note-tags"><span class="demo-tag">#pkm</span><span class="demo-tag">#zettelkasten</span><span class="demo-tag">#note-taking</span></div>
+        </div>
+        <div class="demo-note">
+          <div class="demo-note-title">Atomic Notes Principle</div>
+          <div class="demo-note-body">Each note should capture exactly one concept. This enables flexible reuse: a note about [[Spaced Repetition]] can link from notes on learning, memory, and education without duplication.</div>
+          <div class="demo-note-tags"><span class="demo-tag">#atomic-notes</span><span class="demo-tag">#pkm</span></div>
+        </div>
+        <div class="demo-note">
+          <div class="demo-note-title">Emergent Structure</div>
+          <div class="demo-note-body">Unlike hierarchical filing systems, Zettelkasten builds structure bottom-up. Categories emerge from notes via [[wikilinks]] rather than being imposed top-down by folders.</div>
+          <div class="demo-note-tags"><span class="demo-tag">#knowledge-management</span><span class="demo-tag">#structure</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stats-inner">
+    <div><div class="stat-n"><span>100%</span></div><div class="stat-l">Client-side — zero data to our servers</div></div>
+    <div><div class="stat-n">~<span>$0.003</span></div><div class="stat-l">per article with Haiku 4.5</div></div>
+    <div><div class="stat-n"><span>3–7</span></div><div class="stat-l">atomic notes per article</div></div>
+    <div><div class="stat-n"><span>ZIP</span></div><div class="stat-l">ready for Obsidian import</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Why Qonspekt</div>
+  <div class="section-title">Built for how PKM actually works</div>
+  <p class="section-sub">Reading articles is easy. Turning them into lasting knowledge is hard. Qonspekt does the hard part.</p>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <div class="feature-title">Your key, your data</div>
+      <div class="feature-desc">Your Claude API key is stored in your browser's localStorage only. It goes directly to Anthropic — never to us. We have no backend, no database, no logs.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚛</div>
+      <div class="feature-title">Truly atomic notes</div>
+      <div class="feature-desc">Each note captures exactly one concept with proper frontmatter, tags, aliases, and [[wikilinks]] connecting related ideas. Ready to drop into any vault.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⬇</div>
+      <div class="feature-title">One-click import</div>
+      <div class="feature-desc">Download all notes as a .zip or individual .md files. Or share a link — Qonspekt encodes notes in the URL so anyone can view them without an account.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="padding-top:0">
+  <div class="section-label">How it works</div>
+  <div class="section-title">Three steps to a smarter vault</div>
+  <p class="section-sub">No account, no installation, no friction.</p>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div><div class="step-title">Paste your article</div><div class="step-desc">Copy any article, blog post, or paper and paste it in. Or enter a URL and let Qonspekt fetch the content.</div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div><div class="step-title">Claude finds the concepts</div><div class="step-desc">Using your own API key, Claude identifies the key ideas worth keeping and writes each as a clean atomic note with wikilinks.</div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div><div class="step-title">Download and import</div><div class="step-desc">Get a ZIP of ready-to-use .md files with frontmatter, tags, and wikilinks. Drag into Obsidian. Done.</div></div>
+    </div>
+  </div>
+</div>
+
+<section class="tool-section" id="tool">
+  <div class="tool-inner">
+    <div class="tool-header">
+      <div class="section-label" style="text-align:center">The tool</div>
+      <div class="section-title" style="text-align:center;margin-bottom:8px">Generate your notes</div>
+      <p style="color:var(--muted2);font-size:15px;text-align:center">Get a free API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent2)">console.anthropic.com</a></p>
+    </div>
+
+    <div id="disclaimer">
+      <strong>One thing before you start:</strong> Only process content you have the right to use — your own notes, openly licensed articles, or content for personal research. This tool is entirely client-side. Nothing is sent to any server except the Claude API via your own key.
+      <br><button class="btn-ack" onclick="document.getElementById('disclaimer').style.display='none';localStorage.setItem('qonspekt_ack','1')">I understand →</button>
+    </div>
+
+    <div class="apikey-wrap">
+      <div class="apikey-label">
+        <span>Claude API Key</span>
+        <a href="https://console.anthropic.com/settings/keys" target="_blank">Get a free key ↗</a>
+      </div>
+      <div class="apikey-row">
+        <div class="key-dot" id="keyDot"></div>
+        <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+        <button class="btn-text" id="toggleKey">show</button>
+      </div>
+    </div>
+
+    <div class="input-card">
+      <div class="tabs">
+        <button class="tab active" data-tab="paste">Paste text</button>
+        <button class="tab" data-tab="url">Fetch URL</button>
+      </div>
+      <div class="tab-panel active" id="tab-paste">
+        <textarea id="pasteContent" placeholder="Paste the article content here…"></textarea>
+      </div>
+      <div class="tab-panel" id="tab-url">
+        <div class="url-row">
+          <input type="url" class="url-inp" id="urlInput" placeholder="https://…">
+          <button class="btn-fetch" id="fetchBtn">Fetch</button>
+        </div>
+        <div class="fetch-msg" id="fetchMsg">Most sites block direct browser fetches — paste the article text if this fails.</div>
+        <textarea class="textarea-url" id="urlContent" placeholder="Fetched content appears here — edit if needed."></textarea>
+      </div>
+      <div class="options-row">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <select class="model-sel" id="modelSel">
+            <option value="claude-haiku-4-5-20251001">Haiku 4.5 — fast &amp; cheap</option>
+            <option value="claude-sonnet-4-6">Sonnet 4.6 — best quality</option>
+          </select>
+          <span class="cost-hint">~$0.003 / article with Haiku</span>
+        </div>
+        <button class="btn-generate" id="genBtn">
+          <div class="spin" id="spin"></div>
+          <span id="genLabel">⬡ Generate notes</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+    <div id="output"></div>
+  </div>
+</section>
+
+<div class="section">
+  <div class="section-label">FAQ</div>
+  <div class="section-title" style="margin-bottom:32px">Common questions</div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">Is my API key safe?</div>
+      <div class="faq-a">Yes. Your key is stored only in your browser's localStorage and sent directly to Anthropic's API — the same way the official Claude website works. Qonspekt has no backend server. We cannot see your key.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What does it cost?</div>
+      <div class="faq-a">Qonspekt is free forever. You pay Anthropic only for API usage. A typical 3000-word article costs around $0.003 with Haiku 4.5. New accounts get free credits to start with.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Does it work with Logseq, Notion, or other tools?</div>
+      <div class="faq-a">Yes — output is standard Markdown with YAML frontmatter. Works with Obsidian, Logseq, Notion (via import), Bear, iA Writer, and any Markdown editor.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I share generated notes?</div>
+      <div class="faq-a">Yes. After generating, click the Share button. Qonspekt encodes the notes into the URL — no server involved. Share the link and anyone can view the notes without creating an account.</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div style="margin-bottom:12px">
+    <a href="https://github.com/DerTill123/qonspekt" target="_blank">GitHub</a>
+    <a href="https://console.anthropic.com" target="_blank">Get API Key</a>
+  </div>
+  Qonspekt runs entirely in your browser. Your content and API key are never stored on any server.
+  By using this tool you confirm you have the right to process the content you submit.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+if (!localStorage.getItem('qonspekt_ack')) $('disclaimer').style.display = 'block';
+
+// API Key
+const keyInput = $('apiKey');
+function syncDot() { $('keyDot').classList.toggle('valid', keyInput.value.trim().startsWith('sk-ant-') && keyInput.value.length > 20); }
+keyInput.addEventListener('input', () => {
+  const v = keyInput.value.trim();
+  if (v.startsWith('sk-ant-') && v.length > 20) localStorage.setItem('qonspekt_key', v);
+  else localStorage.removeItem('qonspekt_key');
+  syncDot();
+});
+$('toggleKey').addEventListener('click', () => {
+  const h = keyInput.type === 'password';
+  keyInput.type = h ? 'text' : 'password';
+  $('toggleKey').textContent = h ? 'hide' : 'show';
+});
+const saved = localStorage.getItem('qonspekt_key');
+if (saved) { keyInput.value = saved; syncDot(); }
+
+// Tabs
+let activeTab = 'paste';
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activeTab = btn.dataset.tab;
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    $('tab-' + activeTab).classList.add('active');
+  });
+});
+
+// URL Fetch
+$('fetchBtn').addEventListener('click', async () => {
+  const url = $('urlInput').value.trim();
+  if (!url) return;
+  const msg = $('fetchMsg'), btn = $('fetchBtn');
+  btn.textContent = 'Fetching…'; btn.disabled = true;
+  msg.textContent = 'Trying…'; msg.className = 'fetch-msg';
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const html = await res.text();
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    tmp.querySelectorAll('script,style,nav,footer,header,aside').forEach(el => el.remove());
+    const text = (tmp.textContent || '').replace(/\s+/g, ' ').trim();
+    if (text.length < 200) throw new Error('Too little content extracted');
+    $('urlContent').value = text.slice(0, 14000);
+    msg.textContent = '✓ Fetched ' + text.length.toLocaleString() + ' chars';
+    msg.className = 'fetch-msg ok';
+  } catch (e) {
+    msg.textContent = 'Could not fetch (' + e.message + '). Paste the article text manually.';
+    msg.className = 'fetch-msg err';
+  } finally { btn.textContent = 'Fetch'; btn.disabled = false; }
+});
+
+// Generate
+$('genBtn').addEventListener('click', generate);
+
+async function generate() {
+  const apiKey = keyInput.value.trim();
+  if (!apiKey) { showError('Enter your Claude API key above.'); return; }
+  const content = activeTab === 'paste' ? $('pasteContent').value.trim() : $('urlContent').value.trim();
+  const sourceUrl = activeTab === 'url' ? $('urlInput').value.trim() : '';
+  if (!content || content.length < 100) { showError('Paste some article content first.'); return; }
+
+  $('genBtn').disabled = true; $('spin').style.display = 'block'; $('genLabel').textContent = 'Extracting…';
+  showLoading('Sending to Claude API…'); $('output').innerHTML = '';
+
+  try {
+    const notes = await callClaude(apiKey, content, sourceUrl);
+    renderNotes(notes); hideStatus();
+  } catch (e) { showError(e.message); }
+  finally { $('genBtn').disabled = false; $('spin').style.display = 'none'; $('genLabel').textContent = '⬡ Generate notes'; }
+}
+
+async function callClaude(apiKey, content, sourceUrl) {
+  const model = $('modelSel').value;
+  const system = `You are an expert at creating atomic notes for Obsidian using the Zettelkasten method.
+Rules:
+- Extract 3-7 key concepts, write one atomic note per concept
+- Each note is self-contained but uses [[wikilinks]] to reference related concepts from the same batch
+- 150-280 words per note body, clear prose
+- Tags: 2-4, lowercase, hyphens for spaces
+- Add aliases if the concept has synonyms or abbreviations
+- End each note with ## Sources
+Return ONLY a valid JSON array, no markdown fences:
+[{"filename":"slug.md","title":"Title","tags":["tag"],"preview":"One sentence.","content":"---\\ntitle: Title\\ntags: [tag1]\\naliases: []\\n---\\n# Title\\n\\nBody...\\n\\n## Sources\\n- URL"}]`;
+
+  const user = sourceUrl ? `Source: ${sourceUrl}\n\nContent:\n${content.slice(0,13000)}` : `Content:\n${content.slice(0,13000)}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body: JSON.stringify({ model, max_tokens:4096, system, messages:[{role:'user',content:user}] }),
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(()=>({}));
+    throw new Error(e?.error?.message || 'API error ' + res.status + '. Check your key.');
+  }
+  const data = await res.json();
+  const raw = data.content?.[0]?.text || '';
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('Unexpected response. Try again or switch to Sonnet 4.6.');
+  const notes = JSON.parse(match[0]);
+  if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned. Try with more content.');
+  return notes;
+}
+
+// Render
+function renderNotes(notes) {
+  const out = $('output');
+  const bar = document.createElement('div'); bar.className = 'output-bar';
+  bar.innerHTML = `<div><span class="output-title">Your notes</span>&ensp;<span class="output-count">${notes.length} note${notes.length!==1?'s':''}</span></div>
+    <div class="output-actions"><button class="btn-out" id="btnShare">🔗 Share</button><button class="btn-out" id="btnZip">⬇ ZIP</button></div>`;
+  out.appendChild(bar);
+
+  const list = document.createElement('div'); list.className = 'notes-list';
+  notes.forEach((n, i) => {
+    const card = document.createElement('div'); card.className = 'note-card';
+    const tags = (n.tags||[]).map(t=>`<span class="ntag">#${t}</span>`).join('');
+    card.innerHTML = `
+      <div class="note-head"><div>
+        <div class="note-title">${esc(n.title||n.filename)}</div>
+        <div class="note-file">${esc(n.filename)}</div>
+        ${n.preview?`<div class="note-preview-text">${esc(n.preview)}</div>`:''}
+      </div></div>
+      ${tags?`<div class="note-tags">${tags}</div>`:''}
+      <pre class="note-body" id="nb${i}">${esc(n.content)}</pre>
+      <div class="note-foot">
+        <button class="btn-sm" id="tog${i}">👁 Preview</button>
+        <button class="btn-sm" id="cp${i}">⎘ Copy</button>
+        <button class="btn-sm" id="dl${i}">⬇ .md</button>
+      </div>`;
+    list.appendChild(card);
+  });
+  out.appendChild(list);
+
+  notes.forEach((n, i) => {
+    $('tog'+i).onclick = () => { const o=$('nb'+i).classList.toggle('open'); $('tog'+i).textContent=o?'👁 Hide':'👁 Preview'; };
+    $('cp'+i).onclick = async () => { await navigator.clipboard.writeText(n.content); flash($('cp'+i),'✓ Copied','⎘ Copy'); };
+    $('dl'+i).onclick = () => dlFile(n.filename, n.content);
+  });
+
+  $('btnZip').onclick = async () => {
+    const zip = new JSZip();
+    notes.forEach(n => zip.file(n.filename, n.content));
+    dlBlob(await zip.generateAsync({type:'blob'}), 'qonspekt-notes.zip');
+    flash($('btnZip'),'✓ Downloaded','⬇ ZIP');
+  };
+
+  $('btnShare').onclick = () => {
+    try {
+      const enc = btoa(unescape(encodeURIComponent(JSON.stringify(notes))));
+      const url = location.origin + location.pathname + '#shared=' + enc;
+      navigator.clipboard.writeText(url);
+      flash($('btnShare'),'✓ Link copied!','🔗 Share');
+    } catch { flash($('btnShare'),'⚠ Too large','🔗 Share'); }
+  };
+}
+
+// Shared view
+(function loadShared() {
+  const hash = location.hash;
+  if (!hash.startsWith('#shared=')) return;
+  try {
+    const notes = JSON.parse(decodeURIComponent(escape(atob(hash.slice(8)))));
+    document.querySelector('.hero').style.display='none';
+    document.querySelector('.stats').style.display='none';
+    document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+    const wrap = document.querySelector('.tool-section');
+    wrap.style.cssText='padding:80px 24px';
+    const inner = wrap.querySelector('.tool-inner');
+    const banner = document.createElement('div');
+    banner.style.cssText='background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:18px 22px;margin-bottom:28px;font-size:14px;color:var(--muted2)';
+    banner.innerHTML=`<strong style="color:var(--accent2)">Shared Qonspekt</strong> — Someone generated these notes and shared them with you. <a href="/" style="color:var(--accent2);margin-left:8px">Create your own →</a>`;
+    inner.insertBefore(banner, inner.firstChild);
+    ['tool-header','apikey-wrap','input-card','disclaimer','status'].forEach(id=>{ const el=$(id); if(el) el.style.display='none'; });
+    renderNotes(notes);
+  } catch(e) {}
+})();
+
+// FAQ
+document.querySelectorAll('.faq-item').forEach(item => {
+  item.querySelector('.faq-q').addEventListener('click', () => item.classList.toggle('open'));
+});
+
+// Helpers
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function dlFile(name,content){dlBlob(new Blob([content],{type:'text/markdown'}),name);}
+function dlBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function flash(btn,msg,orig,ms=1800){btn.textContent=msg;btn.classList.add('ok');setTimeout(()=>{btn.textContent=orig;btn.classList.remove('ok');},ms);}
+function showLoading(msg){const s=$('status');s.className='status loading';s.innerHTML=`<div class="spin" style="display:block;flex-shrink:0"></div>${esc(msg)}`;}
+function showError(msg){const s=$('status');s.className='status error';s.textContent='⚠ '+msg;}
+function hideStatus(){$('status').className='status';}
+</script>
+</body>
+</html>
