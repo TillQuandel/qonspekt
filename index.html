@@ -674,11 +674,7 @@ Return ONLY a valid JSON array, no markdown fences:
   }
   const data = await res.json();
   const raw = data.content?.[0]?.text || '';
-  const match = raw.match(/\[[\s\S]*\]/);
-  if (!match) throw new Error('Unexpected response. Try again or switch to Sonnet 4.6.');
-  const notes = JSON.parse(match[0]);
-  if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned. Try with more content.');
-  return notes;
+  return parseNotes(raw, 'Claude');
 }
 
 async function callFree(content, sourceUrl) {
@@ -701,11 +697,7 @@ Return ONLY a valid JSON array, no markdown fences, no extra text:
   if (!res.ok) throw new Error('Free service temporarily unavailable. Try again in a moment.');
   const data = await res.json();
   const raw = data.choices?.[0]?.message?.content || '';
-  const match = raw.match(/\[[\s\S]*\]/);
-  if (!match) throw new Error('Could not parse response. Try again.');
-  const notes = JSON.parse(match[0]);
-  if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned. Try with more content.');
-  return notes;
+  return parseNotes(raw, 'Free service');
 }
 
 async function callGroq(apiKey, content, sourceUrl) {
@@ -734,11 +726,7 @@ Return ONLY a valid JSON array, no markdown fences:
   }
   const data = await res.json();
   const raw = data.choices?.[0]?.message?.content || '';
-  const match = raw.match(/\[[\s\S]*\]/);
-  if (!match) throw new Error('Unexpected Groq response. Try again.');
-  const notes = JSON.parse(match[0]);
-  if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned.');
-  return notes;
+  return parseNotes(raw, 'OpenRouter');
 }
 
 async function callGemini(apiKey, content, sourceUrl) {
@@ -778,11 +766,7 @@ ${content.slice(0, 13000)}`;
 
   const data = await res.json();
   const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  const match = raw.match(/\[[\s\S]*\]/);
-  if (!match) throw new Error('Unexpected Gemini response. Try again.');
-  const notes = JSON.parse(match[0]);
-  if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned.');
-  return notes;
+  return parseNotes(raw, 'Gemini');
 }
 
 // Render
@@ -871,6 +855,38 @@ function flash(btn,msg,orig,ms=1800){btn.textContent=msg;btn.classList.add('ok')
 function showLoading(msg){const s=$('status');s.className='status loading';s.innerHTML=`<div class="spin" style="display:block;flex-shrink:0"></div>${esc(msg)}`;}
 function showError(msg){const s=$('status');s.className='status error';s.textContent='⚠ '+msg;}
 function hideStatus(){$('status').className='status';}
+
+function parseNotes(raw, label) {
+  // 1. Extract JSON array (greedy, handles trailing garbage)
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error(`${label} returned unexpected format. Try again.`);
+  let text = match[0];
+
+  // 2. Attempt direct parse
+  try {
+    const notes = JSON.parse(text);
+    if (Array.isArray(notes) && notes.length) return notes;
+  } catch(_) {}
+
+  // 3. Truncated JSON: try to close open brackets/braces
+  try {
+    let depth = 0, inStr = false, esc = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (esc) { esc = false; continue; }
+      if (c === '\\' && inStr) { esc = true; continue; }
+      if (c === '"') { inStr = !inStr; continue; }
+      if (!inStr) { if (c === '[' || c === '{') depth++; else if (c === ']' || c === '}') depth--; }
+    }
+    // Close unclosed structures
+    let fixed = text.trimEnd().replace(/,\s*$/, '');
+    while (depth > 0) { fixed += depth % 2 === 0 ? ']' : '}'; depth--; }
+    const notes = JSON.parse(fixed);
+    if (Array.isArray(notes) && notes.length) return notes;
+  } catch(_) {}
+
+  throw new Error(`${label} returned incomplete JSON. Try with a shorter article.`);
+}
 
 // Typewriter demo
 (function(){
