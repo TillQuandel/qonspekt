@@ -48,7 +48,7 @@
   <text x="568" y="454" font-family="monospace" font-size="15" fill="#a78bfa" text-anchor="middle">Key stays in browser</text>
 
   <!-- URL -->
-  <text x="80" y="570" font-family="monospace" font-size="20" fill="#6a6a88">dertill123.github.io/qonspekt</text>
+  <text x="80" y="570" font-family="monospace" font-size="20" fill="#6a6a88">qonspekt.github.io/qonspekt</text>
 
   <!-- Note card preview (right side) -->
   <rect x="760" y="120" width="360" height="380" rx="12" fill="#0e0e1a" stroke="#2d2d3d" stroke-width="1"/>
