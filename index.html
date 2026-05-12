@@ -230,9 +230,9 @@
   <div class="hero-glow"></div>
   <div class="hero-inner">
     <div class="hero-text">
-      <div class="hero-badge"><span></span> Free · No account · BYOK</div>
+      <div class="hero-badge"><span></span> Free · No account · BYOK · Gemini free tier</div>
       <h1>Not a web clipper.<br><em>An AI note-writer.</em></h1>
-      <p class="hero-sub">Paste any article. Claude AI extracts the key concepts and writes <strong>3–7 atomic Obsidian notes</strong> with frontmatter, tags, aliases, and <code style="font-size:14px;background:rgba(124,58,237,0.15);padding:1px 6px;border-radius:4px;color:var(--accent2)">[[wikilinks]]</code>. Your key never leaves your browser.</p>
+      <p class="hero-sub">Paste any article. AI extracts the key concepts and writes <strong>3–7 atomic Obsidian notes</strong> with frontmatter, tags, aliases, and <code style="font-size:14px;background:rgba(124,58,237,0.15);padding:1px 6px;border-radius:4px;color:var(--accent2)">[[wikilinks]]</code>. Works with <strong>Gemini (free)</strong> or Claude.</p>
       <div class="hero-ctas">
         <button class="btn-hero btn-hero-primary" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">⬡ Generate notes free</button>
         <a class="btn-hero btn-hero-ghost" href="https://github.com/Qonspekt/qonspekt" target="_blank">★ Star on GitHub</a>
@@ -367,7 +367,7 @@
     <div class="tool-header">
       <div class="section-label" style="text-align:center">The tool</div>
       <div class="section-title" style="text-align:center;margin-bottom:8px">Generate your notes</div>
-      <p style="color:var(--muted2);font-size:15px;text-align:center">Get a free API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent2)">console.anthropic.com</a></p>
+      <p style="color:var(--muted2);font-size:15px;text-align:center">Works with Claude or <strong style="color:var(--success)">Gemini (free)</strong> — no credit card needed</p>
     </div>
 
     <div id="disclaimer">
@@ -375,16 +375,29 @@
       <br><button class="btn-ack" onclick="document.getElementById('disclaimer').style.display='none';localStorage.setItem('qonspekt_ack','1')">I understand →</button>
     </div>
 
+    <!-- Provider selector -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="provClaude" onclick="setProvider('claude')"
+        style="flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--glow);color:var(--accent2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
+        Claude
+      </button>
+      <button id="provGemini" onclick="setProvider('gemini')"
+        style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
+        Gemini <span style="font-size:11px;color:var(--success);font-weight:400">FREE</span>
+      </button>
+    </div>
+
     <div class="apikey-wrap">
       <div class="apikey-label">
-        <span>Claude API Key</span>
-        <a href="https://console.anthropic.com/settings/keys" target="_blank">Get a free key ↗</a>
+        <span id="keyLabel">Claude API Key</span>
+        <a id="keyLink" href="https://console.anthropic.com/settings/keys" target="_blank">Get key ↗</a>
       </div>
       <div class="apikey-row">
         <div class="key-dot" id="keyDot"></div>
         <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
         <button class="btn-text" id="toggleKey">show</button>
       </div>
+      <div id="keyHint" style="margin-top:6px;font-size:11px;color:var(--muted)"></div>
     </div>
 
     <div class="input-card">
@@ -409,7 +422,7 @@
             <option value="claude-haiku-4-5-20251001">Haiku 4.5 — fast &amp; cheap</option>
             <option value="claude-sonnet-4-6">Sonnet 4.6 — best quality</option>
           </select>
-          <span class="cost-hint">~$0.003 / article with Haiku</span>
+          <span class="cost-hint" id="costHint">~$0.003 / article with Haiku</span>
         </div>
         <button class="btn-generate" id="genBtn">
           <div class="spin" id="spin"></div>
@@ -469,13 +482,61 @@ const $ = id => document.getElementById(id);
 
 if (!localStorage.getItem('qonspekt_ack')) $('disclaimer').style.display = 'block';
 
+// Provider
+let provider = localStorage.getItem('qonspekt_provider') || 'claude';
+
+function setProvider(p) {
+  provider = p;
+  localStorage.setItem('qonspekt_provider', p);
+  const isClaude = p === 'claude';
+
+  // Buttons
+  $('provClaude').style.cssText = isClaude
+    ? 'flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--glow);color:var(--accent2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s'
+    : 'flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s';
+  $('provGemini').innerHTML = isClaude
+    ? 'Gemini <span style="font-size:11px;color:var(--success);font-weight:400">FREE</span>'
+    : 'Gemini <span style="font-size:11px;color:var(--success);font-weight:400">FREE</span>';
+  $('provGemini').style.cssText = isClaude
+    ? 'flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s'
+    : 'flex:1;padding:10px;border-radius:8px;border:2px solid var(--success);background:rgba(34,211,160,0.08);color:var(--success);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s';
+
+  // Key field
+  $('keyLabel').textContent = isClaude ? 'Claude API Key' : 'Gemini API Key (Free)';
+  $('keyLink').href = isClaude ? 'https://console.anthropic.com/settings/keys' : 'https://aistudio.google.com/apikey';
+  $('keyLink').textContent = isClaude ? 'Get key ↗' : 'Get free key ↗';
+  $('apiKey').placeholder = isClaude ? 'sk-ant-...' : 'AIza...';
+  $('keyHint').textContent = isClaude ? '' : '✓ Gemini 2.0 Flash is free — no credit card, no billing setup needed';
+  $('keyHint').style.color = isClaude ? '' : 'var(--success)';
+
+  // Model selector
+  const sel = $('modelSel');
+  sel.innerHTML = isClaude
+    ? '<option value="claude-haiku-4-5-20251001">Haiku 4.5 — fast &amp; cheap</option><option value="claude-sonnet-4-6">Sonnet 4.6 — best quality</option>'
+    : '<option value="gemini-2.0-flash">Gemini 2.0 Flash — free tier</option><option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash — higher quality</option>';
+  $('costHint').textContent = isClaude ? '~$0.003 / article with Haiku' : 'Free up to 15 req/min';
+
+  // Reload saved key for this provider
+  const saved = localStorage.getItem('qonspekt_key_' + p);
+  $('apiKey').value = saved || '';
+  syncDot();
+}
+
 // API Key
 const keyInput = $('apiKey');
-function syncDot() { $('keyDot').classList.toggle('valid', keyInput.value.trim().startsWith('sk-ant-') && keyInput.value.length > 20); }
+function syncDot() {
+  const v = keyInput.value.trim();
+  const valid = provider === 'claude' ? (v.startsWith('sk-ant-') && v.length > 20) : (v.startsWith('AIza') && v.length > 20);
+  $('keyDot').classList.toggle('valid', valid);
+}
 keyInput.addEventListener('input', () => {
   const v = keyInput.value.trim();
-  if (v.startsWith('sk-ant-') && v.length > 20) localStorage.setItem('qonspekt_key', v);
-  else localStorage.removeItem('qonspekt_key');
+  const storageKey = 'qonspekt_key_' + provider;
+  const valid = provider === 'claude' ? (v.startsWith('sk-ant-') && v.length > 20) : (v.startsWith('AIza') && v.length > 20);
+  if (valid) localStorage.setItem(storageKey, v);
+  else localStorage.removeItem(storageKey);
+  // Legacy compat
+  if (provider === 'claude' && valid) localStorage.setItem('qonspekt_key', v);
   syncDot();
 });
 $('toggleKey').addEventListener('click', () => {
@@ -483,8 +544,14 @@ $('toggleKey').addEventListener('click', () => {
   keyInput.type = h ? 'text' : 'password';
   $('toggleKey').textContent = h ? 'hide' : 'show';
 });
-const saved = localStorage.getItem('qonspekt_key');
-if (saved) { keyInput.value = saved; syncDot(); }
+// Init provider UI
+setProvider(provider);
+// Legacy key migration
+const legacyKey = localStorage.getItem('qonspekt_key');
+if (legacyKey && !localStorage.getItem('qonspekt_key_claude')) {
+  localStorage.setItem('qonspekt_key_claude', legacyKey);
+  if (provider === 'claude') { keyInput.value = legacyKey; syncDot(); }
+}
 
 // Tabs
 let activeTab = 'paste';
@@ -537,7 +604,9 @@ async function generate() {
   showLoading('Sending to Claude API…'); $('output').innerHTML = '';
 
   try {
-    const notes = await callClaude(apiKey, content, sourceUrl);
+    const notes = provider === 'gemini'
+      ? await callGemini(apiKey, content, sourceUrl)
+      : await callClaude(apiKey, content, sourceUrl);
     renderNotes(notes); hideStatus();
   } catch (e) { showError(e.message); }
   finally { $('genBtn').disabled = false; $('spin').style.display = 'none'; $('genLabel').textContent = '⬡ Generate notes'; }
@@ -574,6 +643,50 @@ Return ONLY a valid JSON array, no markdown fences:
   if (!match) throw new Error('Unexpected response. Try again or switch to Sonnet 4.6.');
   const notes = JSON.parse(match[0]);
   if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned. Try with more content.');
+  return notes;
+}
+
+async function callGemini(apiKey, content, sourceUrl) {
+  const model = $('modelSel').value;
+  const prompt = `You are an expert at creating atomic notes for Obsidian using the Zettelkasten method.
+Rules:
+- Extract 3-7 key concepts, write one atomic note per concept
+- Each note is self-contained but uses [[wikilinks]] to reference related concepts from the same batch
+- 150-280 words per note body, clear prose
+- Tags: 2-4, lowercase, hyphens for spaces
+- Add aliases if the concept has synonyms or abbreviations
+- End each note with ## Sources
+Return ONLY a valid JSON array, no markdown fences:
+[{"filename":"slug.md","title":"Title","tags":["tag"],"preview":"One sentence.","content":"---\\ntitle: Title\\ntags: [tag1]\\naliases: []\\n---\\n# Title\\n\\nBody...\\n\\n## Sources\\n- URL"}]
+
+${sourceUrl ? 'Source: ' + sourceUrl + '\n\n' : ''}Content:
+${content.slice(0, 13000)}`;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 4096 }
+      })
+    }
+  );
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    const msg = e?.error?.message || 'Gemini API error ' + res.status;
+    if (res.status === 400 && msg.includes('API key')) throw new Error('Invalid Gemini API key. Get a free key at aistudio.google.com/apikey');
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('Unexpected Gemini response. Try again.');
+  const notes = JSON.parse(match[0]);
+  if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned.');
   return notes;
 }
 
