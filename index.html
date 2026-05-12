@@ -411,10 +411,21 @@
     <div class="input-card">
       <div class="tabs">
         <button class="tab active" data-tab="paste">Paste text</button>
+        <button class="tab" data-tab="pdf">PDF upload</button>
         <button class="tab" data-tab="url">Fetch URL</button>
       </div>
       <div class="tab-panel active" id="tab-paste">
         <textarea id="pasteContent" placeholder="Paste the article content here…"></textarea>
+      </div>
+      <div class="tab-panel" id="tab-pdf">
+        <div id="pdfDrop" style="border:2px dashed var(--border2);border-radius:8px;padding:40px 20px;text-align:center;cursor:pointer;transition:all 0.15s;color:var(--muted2)" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor='var(--border2)'" ondrop="handlePdfDrop(event)">
+          <div style="font-size:32px;margin-bottom:12px">📄</div>
+          <div style="font-weight:600;margin-bottom:6px">Drop PDF here</div>
+          <div style="font-size:13px;color:var(--muted)">or <label for="pdfInput" style="color:var(--accent2);cursor:pointer;text-decoration:underline">browse file</label></div>
+          <input type="file" id="pdfInput" accept=".pdf" style="display:none" onchange="handlePdfFile(this.files[0])">
+        </div>
+        <div id="pdfStatus" style="margin-top:10px;font-size:12px;color:var(--muted);min-height:16px"></div>
+        <textarea id="pdfContent" class="textarea-url" placeholder="Extracted PDF text will appear here — edit if needed." style="display:none"></textarea>
       </div>
       <div class="tab-panel" id="tab-url">
         <div class="url-row">
@@ -491,9 +502,52 @@
   By using this tool you confirm you have the right to process the content you submit.
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module" id="pdfjs-script"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHveA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 const $ = id => document.getElementById(id);
+
+// PDF extraction via PDF.js
+async function extractPdfText(file) {
+  const status = $('pdfStatus');
+  const ta = $('pdfContent');
+  status.textContent = 'Loading PDF…';
+  status.style.color = 'var(--muted)';
+  try {
+    const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let text = '';
+    for (let i = 1; i <= Math.min(pdf.numPages, 30); i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(item => item.str).join(' ') + '\n\n';
+      status.textContent = `Extracting page ${i}/${Math.min(pdf.numPages, 30)}…`;
+    }
+    text = text.replace(/\s+/g, ' ').trim();
+    if (text.length < 100) throw new Error('Could not extract text. PDF may be image-based.');
+    ta.value = text.slice(0, 14000);
+    ta.style.display = 'block';
+    status.textContent = `✓ ${text.length.toLocaleString()} chars extracted from ${pdf.numPages} pages`;
+    status.style.color = 'var(--success)';
+    $('pdfDrop').style.display = 'none';
+  } catch (e) {
+    status.textContent = '⚠ ' + e.message;
+    status.style.color = '#f87171';
+  }
+}
+
+function handlePdfDrop(e) {
+  e.preventDefault();
+  $('pdfDrop').style.borderColor = 'var(--border2)';
+  const file = e.dataTransfer.files[0];
+  if (file?.type === 'application/pdf') extractPdfText(file);
+}
+
+function handlePdfFile(file) {
+  if (file) extractPdfText(file);
+}
 
 if (!localStorage.getItem('qonspekt_ack')) $('disclaimer').style.display = 'block';
 
@@ -637,7 +691,9 @@ $('genBtn').addEventListener('click', generate);
 async function generate() {
   const apiKey = keyInput.value.trim();
   if (!apiKey && provider !== 'free') { showError('Enter your API key above.'); return; }
-  const content = activeTab === 'paste' ? $('pasteContent').value.trim() : $('urlContent').value.trim();
+  const content = activeTab === 'paste' ? $('pasteContent').value.trim()
+    : activeTab === 'pdf' ? $('pdfContent').value.trim()
+    : $('urlContent').value.trim();
   const sourceUrl = activeTab === 'url' ? $('urlInput').value.trim() : '';
   if (!content || content.length < 100) { showError('Paste some article content first.'); return; }
 
@@ -656,16 +712,22 @@ async function generate() {
 
 async function callClaude(apiKey, content, sourceUrl) {
   const model = $('modelSel').value;
-  const system = `You are an expert at creating atomic notes for Obsidian using the Zettelkasten method.
-Rules:
-- Extract 3-7 key concepts, write one atomic note per concept
-- Each note is self-contained but uses [[wikilinks]] to reference related concepts from the same batch
-- 150-280 words per note body, clear prose
-- Tags: 2-4, lowercase, hyphens for spaces
-- Add aliases if the concept has synonyms or abbreviations
-- End each note with ## Sources
-Return ONLY a valid JSON array, no markdown fences:
-[{"filename":"slug.md","title":"Title","tags":["tag"],"preview":"One sentence.","content":"---\\ntitle: Title\\ntags: [tag1]\\naliases: []\\n---\\n# Title\\n\\nBody...\\n\\n## Sources\\n- URL"}]`;
+  const system = `You are an expert Zettelkasten note-taker who creates atomic Obsidian notes.
+
+Rules for GOOD atomic notes:
+- One concept per note — not one article, one CONCEPT (e.g. "Feynman Technique", not "Learning Methods")
+- Title must be a proper noun/concept name, usable as a Wikipedia article title
+- Body: 150-250 words, written in YOUR OWN WORDS — never copy-paste from the source
+- Explain WHY the concept matters, not just what it is
+- Use [[wikilinks]] to connect concepts from this SAME batch only
+- Tags: 2-3, lowercase, hyphens (e.g. learning, cognitive-science)
+- Aliases: add if concept has common abbreviations or synonyms
+- End with ## Sources
+
+Extract 4-6 concepts. Skip obvious/trivial ones. Pick the ideas worth keeping long-term.
+
+Return ONLY valid JSON, no markdown fences, no explanation:
+[{"filename":"concept-slug.md","title":"Concept Name","tags":["tag1","tag2"],"aliases":["alt name"],"preview":"One sentence what this note is about.","content":"---\\ntitle: Concept Name\\ntags: [tag1, tag2]\\naliases: [alt name]\\n---\\n# Concept Name\\n\\nBody in your own words...\\n\\nRelated: [[Other Concept]]\\n\\n## Sources\\n- URL"}]`;
 
   const user = sourceUrl ? `Source: ${sourceUrl}\n\nContent:\n${content.slice(0,13000)}` : `Content:\n${content.slice(0,13000)}`;
 
@@ -689,10 +751,16 @@ async function callFree(content, sourceUrl) {
   const shortContent = content.slice(0, 1500);
   const src = sourceUrl ? sourceUrl : 'pasted content';
 
-  const prompt = `Extract exactly 3 key concepts from this article and write 3 atomic Obsidian notes.
-Rules: 60-80 words per note body. 2 tags each. Use [[wikilinks]] between concepts.
-Return ONLY this JSON, nothing else:
-[{"filename":"a.md","title":"T","tags":["t"],"preview":"S.","content":"---\\ntitle: T\\ntags: [t]\\n---\\n# T\\n\\nBody [[Link]].\\n\\n## Sources\\n- ${src}"}]
+  const prompt = `You are a Zettelkasten expert. Extract 3 key concepts and write 3 atomic Obsidian notes.
+
+Rules:
+- Each note covers ONE concept with a Wikipedia-style title
+- 80-100 words per body, YOUR OWN WORDS, explain why it matters
+- Use [[wikilinks]] to connect the 3 concepts to each other
+- 2 tags each, lowercase
+
+Return ONLY JSON, no extra text:
+[{"filename":"slug.md","title":"Name","tags":["t1","t2"],"preview":"One sentence.","content":"---\\ntitle: Name\\ntags: [t1, t2]\\naliases: []\\n---\\n# Name\\n\\nBody. Related: [[Other]].\\n\\n## Sources\\n- ${src}"}]
 
 Article:
 ${shortContent}`;
