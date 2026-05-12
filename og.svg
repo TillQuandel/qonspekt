@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#07070f"/>
+      <stop offset="100%" style="stop-color:#0e0e1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#a78bfa"/>
+      <stop offset="100%" style="stop-color:#c4b5fd"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="40" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Glow blob -->
+  <ellipse cx="600" cy="280" rx="380" ry="200" fill="rgba(124,58,237,0.15)" filter="url(#glow)"/>
+
+  <!-- Border -->
+  <rect x="1" y="1" width="1198" height="628" fill="none" stroke="#2d2d3d" stroke-width="2" rx="0"/>
+
+  <!-- Logo mark -->
+  <rect x="80" y="72" width="52" height="52" rx="12" fill="url(#accent)"/>
+  <text x="106" y="108" font-family="monospace" font-weight="700" font-size="28" fill="white" text-anchor="middle">Q</text>
+
+  <!-- Logo text -->
+  <text x="148" y="108" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-weight="700" font-size="28" fill="#ededf5">Qonspekt</text>
+
+  <!-- Main headline -->
+  <text x="80" y="230" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-weight="800" font-size="68" fill="#ededf5" letter-spacing="-2">Turn any article into</text>
+  <text x="80" y="316" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-weight="800" font-size="68" fill="url(#accent)" letter-spacing="-2">atomic Obsidian notes</text>
+
+  <!-- Subline -->
+  <text x="80" y="390" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="26" fill="#9090b0">Paste any article · Claude extracts the concepts · Download as ZIP</text>
+
+  <!-- Pills -->
+  <rect x="80" y="430" width="130" height="38" rx="19" fill="rgba(124,58,237,0.15)" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
+  <text x="145" y="454" font-family="monospace" font-size="15" fill="#a78bfa" text-anchor="middle">Free</text>
+
+  <rect x="224" y="430" width="200" height="38" rx="19" fill="rgba(124,58,237,0.15)" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
+  <text x="324" y="454" font-family="monospace" font-size="15" fill="#a78bfa" text-anchor="middle">No account</text>
+
+  <rect x="438" y="430" width="260" height="38" rx="19" fill="rgba(124,58,237,0.15)" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
+  <text x="568" y="454" font-family="monospace" font-size="15" fill="#a78bfa" text-anchor="middle">Key stays in browser</text>
+
+  <!-- URL -->
+  <text x="80" y="570" font-family="monospace" font-size="20" fill="#6a6a88">dertill123.github.io/qonspekt</text>
+
+  <!-- Note card preview (right side) -->
+  <rect x="760" y="120" width="360" height="380" rx="12" fill="#0e0e1a" stroke="#2d2d3d" stroke-width="1"/>
+  <rect x="760" y="120" width="360" height="44" rx="12" fill="#171724"/>
+  <rect x="760" y="152" width="360" height="12" fill="#171724"/>
+  <circle cx="784" cy="142" r="6" fill="#f87171"/>
+  <circle cx="802" cy="142" r="6" fill="#fbbf24"/>
+  <circle cx="820" cy="142" r="6" fill="#34d399"/>
+  <text x="860" y="147" font-family="monospace" font-size="11" fill="#6a6a88">3 notes generated</text>
+
+  <rect x="776" y="180" width="328" height="90" rx="8" fill="#171724"/>
+  <text x="792" y="202" font-family="-apple-system,sans-serif" font-weight="700" font-size="13" fill="#c4b5fd">Zettelkasten Method</text>
+  <text x="792" y="220" font-family="-apple-system,sans-serif" font-size="11" fill="#9090b0">A note-taking system using atomic,</text>
+  <text x="792" y="236" font-family="-apple-system,sans-serif" font-size="11" fill="#9090b0">interlinked cards to build a personal</text>
+  <text x="792" y="252" font-family="-apple-system,sans-serif" font-size="11" fill="#9090b0">knowledge base...</text>
+
+  <rect x="776" y="282" width="328" height="80" rx="8" fill="#171724"/>
+  <text x="792" y="304" font-family="-apple-system,sans-serif" font-weight="700" font-size="13" fill="#c4b5fd">Atomic Notes Principle</text>
+  <text x="792" y="322" font-family="-apple-system,sans-serif" font-size="11" fill="#9090b0">Each note captures exactly one</text>
+  <text x="792" y="338" font-family="-apple-system,sans-serif" font-size="11" fill="#9090b0">concept with [[wikilinks]]...</text>
+
+  <rect x="776" y="374" width="328" height="80" rx="8" fill="#171724"/>
+  <text x="792" y="396" font-family="-apple-system,sans-serif" font-weight="700" font-size="13" fill="#c4b5fd">Emergent Structure</text>
+  <text x="792" y="414" font-family="-apple-system,sans-serif" font-size="11" fill="#9090b0">Categories emerge bottom-up</text>
+  <text x="792" y="430" font-family="-apple-system,sans-serif" font-size="11" fill="#9090b0">from the notes themselves...</text>
+</svg>
