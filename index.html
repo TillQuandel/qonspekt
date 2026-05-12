@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Qonspekt — Turn any article into Obsidian notes</title>
-  <meta name="description" content="Paste any article, get atomic Obsidian-ready Markdown notes in seconds. Free. No account. Your Claude API key stays in your browser.">
-  <meta property="og:title" content="Qonspekt — Article to Obsidian Notes">
-  <meta property="og:description" content="Paste any article, get atomic Obsidian-ready notes in seconds. Free. No account. BYOK.">
+  <title>Qonspekt — AI Atomic Notes Generator for Obsidian (Free, BYOK)</title>
+  <meta name="description" content="Not a web clipper. Qonspekt uses Claude AI to extract key concepts from any article and write atomic Obsidian notes with frontmatter, tags, and [[wikilinks]]. Free, no account, BYOK.">
+  <meta property="og:title" content="Qonspekt — AI Atomic Notes for Obsidian">
+  <meta property="og:description" content="Not a web clipper. Claude AI extracts concepts and writes atomic Obsidian notes with frontmatter, [[wikilinks]], and ZIP download. Free, BYOK.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://qonspekt.github.io/qonspekt/og.svg">
   <meta property="og:url" content="https://qonspekt.github.io/qonspekt/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Qonspekt — Article to Obsidian Notes">
-  <meta name="twitter:description" content="Paste any article, get Obsidian atomic notes in seconds. Free, no account, BYOK.">
+  <meta name="twitter:title" content="Qonspekt — AI Atomic Notes Generator for Obsidian">
+  <meta name="twitter:description" content="Claude AI extracts key concepts from articles and writes proper atomic notes. Free, BYOK, no backend.">
   <link rel="canonical" href="https://qonspekt.github.io/qonspekt/">
-  <meta name="keywords" content="obsidian notes, atomic notes, zettelkasten, pkm, note-taking, claude ai, BYOK, markdown notes, knowledge management, article to notes">
+  <meta name="keywords" content="obsidian atomic notes generator, article to obsidian notes, AI note taking obsidian, zettelkasten generator, claude ai obsidian, BYOK obsidian tool, atomic notes from articles, PKM AI tool, obsidian notes automatically">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -231,8 +231,8 @@
   <div class="hero-inner">
     <div class="hero-text">
       <div class="hero-badge"><span></span> Free · No account · BYOK</div>
-      <h1>Every article becomes<br><em>atomic knowledge</em></h1>
-      <p class="hero-sub">Paste any article, get <strong>Obsidian-ready Markdown notes</strong> in seconds. Your Claude API key never leaves your browser.</p>
+      <h1>Not a web clipper.<br><em>An AI note-writer.</em></h1>
+      <p class="hero-sub">Paste any article. Claude AI extracts the key concepts and writes <strong>3–7 atomic Obsidian notes</strong> with frontmatter, tags, aliases, and <code style="font-size:14px;background:rgba(124,58,237,0.15);padding:1px 6px;border-radius:4px;color:var(--accent2)">[[wikilinks]]</code>. Your key never leaves your browser.</p>
       <div class="hero-ctas">
         <button class="btn-hero btn-hero-primary" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">⬡ Generate notes free</button>
         <a class="btn-hero btn-hero-ghost" href="https://github.com/Qonspekt/qonspekt" target="_blank">★ Star on GitHub</a>
@@ -312,7 +312,37 @@
   </div>
 </div>
 
-<div class="section" style="padding-top:0">
+<!-- NOT A WEB CLIPPER -->
+<div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:60px 24px">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="section-label">Why Qonspekt is different</div>
+    <div class="section-title" style="margin-bottom:32px">Web clippers save articles.<br>Qonspekt writes notes.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px">
+      <div style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:24px">
+        <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px">Web Clipper (Web2MD, WebInk…)</div>
+        <ul style="list-style:none;display:grid;gap:10px;font-size:14px;color:var(--muted2)">
+          <li>→ Saves the article as one big Markdown file</li>
+          <li>→ Preserves the original structure</li>
+          <li>→ You still have to extract concepts yourself</li>
+          <li>→ One note = one article</li>
+          <li>→ No frontmatter, no wikilinks</li>
+        </ul>
+      </div>
+      <div style="background:var(--glow);border:1px solid rgba(124,58,237,0.3);border-radius:var(--radius);padding:24px">
+        <div style="font-size:13px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px">Qonspekt</div>
+        <ul style="list-style:none;display:grid;gap:10px;font-size:14px;color:var(--text)">
+          <li>✓ Extracts 3–7 key <em>concepts</em> from the article</li>
+          <li>✓ Writes each concept as an atomic note</li>
+          <li>✓ YAML frontmatter: title, tags, aliases</li>
+          <li>✓ Connects concepts via [[wikilinks]]</li>
+          <li>✓ ZIP download — drag into Obsidian</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="padding-top:60px">
   <div class="section-label">How it works</div>
   <div class="section-title">Three steps to a smarter vault</div>
   <p class="section-sub">No account, no installation, no friction.</p>
@@ -412,6 +442,14 @@
     <div class="faq-item">
       <div class="faq-q">Can I share generated notes?</div>
       <div class="faq-a">Yes. After generating, click the Share button. Qonspekt encodes the notes into the URL — no server involved. Share the link and anyone can view the notes without creating an account.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How is this different from Web2MD or WebInk?</div>
+      <div class="faq-a">Web clippers like Web2MD and WebInk convert an article into one big Markdown file — the HTML structure becomes Markdown. Qonspekt does something different: Claude AI reads the article, identifies the key concepts, and writes a separate atomic note for each one. The output is 3–7 interconnected notes, not one document.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Do I need to install anything?</div>
+      <div class="faq-a">No installation, no browser extension, no account. Qonspekt runs entirely in your browser — open the page, paste an article, generate notes. It's a single HTML file.</div>
     </div>
   </div>
 </div>
