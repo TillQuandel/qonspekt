@@ -14,6 +14,21 @@
   <meta name="twitter:title" content="Qonspekt — Article to Obsidian Notes">
   <meta name="twitter:description" content="Paste any article, get Obsidian atomic notes in seconds. Free, no account, BYOK.">
   <link rel="canonical" href="https://qonspekt.github.io/qonspekt/">
+  <meta name="keywords" content="obsidian notes, atomic notes, zettelkasten, pkm, note-taking, claude ai, BYOK, markdown notes, knowledge management, article to notes">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Qonspekt",
+    "url": "https://qonspekt.github.io/qonspekt/",
+    "description": "Turn any article into atomic Obsidian-ready Markdown notes using Claude AI. Free, no account, BYOK.",
+    "applicationCategory": "ProductivityApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "featureList": ["Atomic notes generation", "YAML frontmatter", "Wikilinks", "ZIP download", "Serverless sharing", "BYOK"],
+    "author": { "@type": "Organization", "name": "Qonspekt", "url": "https://github.com/Qonspekt/qonspekt" }
+  }
+  </script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237c3aed'/><text x='16' y='22' font-family='monospace' font-weight='700' font-size='18' fill='white' text-anchor='middle'>Q</text></svg>">
   <meta name="twitter:description" content="Turn any article into atomic Obsidian-ready notes. Free, no account, your API key stays in your browser.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -141,6 +156,7 @@
     .btn-generate:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
     .spin { width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; display:none; }
     @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
     .status { margin:16px 0; padding:12px 16px; border-radius:9px; font-size:13px; display:none; }
     .status.loading { display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border2); color:var(--muted); }
@@ -222,6 +238,20 @@
         <a class="btn-hero btn-hero-ghost" href="https://github.com/Qonspekt/qonspekt" target="_blank">★ Star on GitHub</a>
       </div>
     </div>
+
+    <!-- Animated typewriter -->
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden">
+      <div style="padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+        <div style="width:10px;height:10px;border-radius:50%;background:#f87171"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#fbbf24"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#34d399"></div>
+        <span id="demo-status" style="margin-left:8px;font-size:12px;color:var(--muted);font-family:var(--mono)">generating notes...</span>
+      </div>
+      <div style="padding:16px 18px;font-family:var(--mono);font-size:12px;color:var(--muted2);line-height:1.7;min-height:130px">
+        <span id="typewriter"></span><span style="color:var(--accent2);animation:blink 1s step-end infinite">▋</span>
+      </div>
+    </div>
+
     <div class="demo-preview">
       <div class="demo-bar">
         <div class="demo-dot" style="background:#f87171"></div>
@@ -595,6 +625,43 @@ function flash(btn,msg,orig,ms=1800){btn.textContent=msg;btn.classList.add('ok')
 function showLoading(msg){const s=$('status');s.className='status loading';s.innerHTML=`<div class="spin" style="display:block;flex-shrink:0"></div>${esc(msg)}`;}
 function showError(msg){const s=$('status');s.className='status error';s.textContent='⚠ '+msg;}
 function hideStatus(){$('status').className='status';}
+
+// Typewriter demo
+(function(){
+  const frames = [
+    {status:'reading article...', text:''},
+    {status:'extracting concepts...', text:'---\ntitle: Zettelkasten Method\ntags: [pkm, zettelkasten]\naliases: ["Zettel"]\n---\n# Zettelkasten Method\n\nA note-taking system developed by Niklas\nLuhmann using atomic, interlinked cards.\nEach note captures exactly one concept\nand links to related notes via [[wikilinks]].'},
+    {status:'writing note 2/4...', text:'---\ntitle: Atomic Notes Principle\ntags: [pkm, atomic-notes]\n---\n# Atomic Notes Principle\n\nEach note should capture exactly one\nconcept. Enables flexible reuse — a note\nabout [[Spaced Repetition]] can link from\nnotes on learning, memory, and education.'},
+    {status:'4 notes ready ✓', text:'---\ntitle: Emergent Structure\ntags: [knowledge-management]\n---\n# Emergent Structure\n\nUnlike hierarchical systems, Zettelkasten\nbuilds structure bottom-up. Categories\nemerge from [[wikilinks]] rather than\nbeing imposed top-down by folders.'},
+  ];
+  let fi = 0, ci = 0, direction = 1;
+  const tw = document.getElementById('typewriter');
+  const st = document.getElementById('demo-status');
+  if (!tw || !st) return;
+
+  function tick() {
+    const frame = frames[fi];
+    st.textContent = frame.status;
+    if (direction === 1) {
+      if (ci < frame.text.length) {
+        tw.textContent = frame.text.slice(0, ++ci);
+        setTimeout(tick, ci < 80 ? 18 : 8);
+      } else {
+        setTimeout(() => { direction = -1; tick(); }, 1800);
+      }
+    } else {
+      if (ci > 0) {
+        tw.textContent = frame.text.slice(0, --ci);
+        setTimeout(tick, 4);
+      } else {
+        fi = (fi + 1) % frames.length;
+        direction = 1;
+        setTimeout(tick, 400);
+      }
+    }
+  }
+  setTimeout(tick, 1000);
+})();
 </script>
 </body>
 </html>

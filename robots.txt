@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://qonspekt.github.io/qonspekt/sitemap.xml
