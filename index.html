@@ -381,9 +381,13 @@
         style="flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--glow);color:var(--accent2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
         Claude
       </button>
+      <button id="provGroq" onclick="setProvider('groq')"
+        style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
+        Groq <span style="font-size:11px;color:var(--success);font-weight:400">FREE</span>
+      </button>
       <button id="provGemini" onclick="setProvider('gemini')"
         style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
-        Gemini <span style="font-size:11px;color:var(--success);font-weight:400">FREE</span>
+        Gemini
       </button>
     </div>
 
@@ -489,32 +493,42 @@ function setProvider(p) {
   provider = p;
   localStorage.setItem('qonspekt_provider', p);
   const isClaude = p === 'claude';
+  const isGroq = p === 'groq';
 
-  // Buttons
-  $('provClaude').style.cssText = isClaude
-    ? 'flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--glow);color:var(--accent2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s'
-    : 'flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s';
-  $('provGemini').innerHTML = isClaude
-    ? 'Gemini <span style="font-size:11px;color:var(--success);font-weight:400">FREE</span>'
-    : 'Gemini <span style="font-size:11px;color:var(--success);font-weight:400">FREE</span>';
-  $('provGemini').style.cssText = isClaude
-    ? 'flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s'
-    : 'flex:1;padding:10px;border-radius:8px;border:2px solid var(--success);background:rgba(34,211,160,0.08);color:var(--success);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s';
+  const activeStyle = (color) => `flex:1;padding:10px;border-radius:8px;border:2px solid ${color};background:${color}22;color:${color};font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s`;
+  const inactiveStyle = 'flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s';
+
+  $('provClaude').style.cssText = isClaude ? activeStyle('var(--accent)') : inactiveStyle;
+  $('provClaude').innerHTML = 'Claude';
+  $('provGroq').style.cssText = isGroq ? activeStyle('var(--success)') : inactiveStyle;
+  $('provGroq').innerHTML = 'Groq <span style="font-size:11px;font-weight:400">FREE</span>';
+  $('provGemini').style.cssText = (!isClaude && !isGroq) ? activeStyle('var(--success)') : inactiveStyle;
+  $('provGemini').innerHTML = 'Gemini';
 
   // Key field
-  $('keyLabel').textContent = isClaude ? 'Claude API Key' : 'Gemini API Key (Free)';
-  $('keyLink').href = isClaude ? 'https://console.anthropic.com/settings/keys' : 'https://aistudio.google.com/apikey';
-  $('keyLink').textContent = isClaude ? 'Get key ↗' : 'Get free key ↗';
-  $('apiKey').placeholder = isClaude ? 'sk-ant-...' : 'AIza...';
-  $('keyHint').textContent = isClaude ? '' : '✓ Gemini 2.0 Flash is free — no credit card, no billing setup needed';
-  $('keyHint').style.color = isClaude ? '' : 'var(--success)';
+  const labels = {
+    claude: ['Claude API Key', 'https://console.anthropic.com/settings/keys', 'Get key ↗', 'sk-ant-...', ''],
+    groq:   ['Groq API Key (Free)', 'https://console.groq.com/keys', 'Get free key ↗', 'gsk_...', '✓ Groq is genuinely free — no credit card, no billing. Uses Llama & Mixtral models.'],
+    gemini: ['Gemini API Key', 'https://aistudio.google.com/apikey', 'Get key ↗', 'AIza...', 'Note: some Google accounts have free tier locked. Use Groq if you see quota errors.'],
+  };
+  const [label, href, linkText, ph, hint] = labels[p];
+  $('keyLabel').textContent = label;
+  $('keyLink').href = href;
+  $('keyLink').textContent = linkText;
+  $('apiKey').placeholder = ph;
+  $('keyHint').textContent = hint;
+  $('keyHint').style.color = p === 'claude' ? 'var(--muted)' : p === 'groq' ? 'var(--success)' : 'var(--muted2)';
 
   // Model selector
   const sel = $('modelSel');
-  sel.innerHTML = isClaude
-    ? '<option value="claude-haiku-4-5-20251001">Haiku 4.5 — fast &amp; cheap</option><option value="claude-sonnet-4-6">Sonnet 4.6 — best quality</option>'
-    : '<option value="gemini-2.0-flash">Gemini 2.0 Flash — free tier</option><option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash — higher quality</option>';
-  $('costHint').textContent = isClaude ? '~$0.003 / article with Haiku' : 'Free up to 15 req/min';
+  const models = {
+    claude: '<option value="claude-haiku-4-5-20251001">Haiku 4.5 — fast &amp; cheap</option><option value="claude-sonnet-4-6">Sonnet 4.6 — best quality</option>',
+    groq:   '<option value="llama-3.3-70b-versatile">Llama 3.3 70B — free, great quality</option><option value="mixtral-8x7b-32768">Mixtral 8x7B — free, fast</option>',
+    gemini: '<option value="gemini-2.0-flash">Gemini 2.0 Flash — free tier</option><option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash — higher quality</option>',
+  };
+  sel.innerHTML = models[p];
+  const hints = { claude: '~$0.003 / article with Haiku', groq: 'Free — no usage limits for typical use', gemini: 'Free up to 15 req/min (account dependent)' };
+  $('costHint').textContent = hints[p];
 
   // Reload saved key for this provider
   const saved = localStorage.getItem('qonspekt_key_' + p);
@@ -526,13 +540,17 @@ function setProvider(p) {
 const keyInput = $('apiKey');
 function syncDot() {
   const v = keyInput.value.trim();
-  const valid = provider === 'claude' ? (v.startsWith('sk-ant-') && v.length > 20) : (v.startsWith('AIza') && v.length > 20);
+  const valid = provider === 'claude' ? (v.startsWith('sk-ant-') && v.length > 20)
+    : provider === 'groq' ? (v.startsWith('gsk_') && v.length > 20)
+    : (v.startsWith('AIza') && v.length > 20);
   $('keyDot').classList.toggle('valid', valid);
 }
 keyInput.addEventListener('input', () => {
   const v = keyInput.value.trim();
   const storageKey = 'qonspekt_key_' + provider;
-  const valid = provider === 'claude' ? (v.startsWith('sk-ant-') && v.length > 20) : (v.startsWith('AIza') && v.length > 20);
+  const valid = provider === 'claude' ? (v.startsWith('sk-ant-') && v.length > 20)
+    : provider === 'groq' ? (v.startsWith('gsk_') && v.length > 20)
+    : (v.startsWith('AIza') && v.length > 20);
   if (valid) localStorage.setItem(storageKey, v);
   else localStorage.removeItem(storageKey);
   // Legacy compat
@@ -604,8 +622,8 @@ async function generate() {
   showLoading('Sending to Claude API…'); $('output').innerHTML = '';
 
   try {
-    const notes = provider === 'gemini'
-      ? await callGemini(apiKey, content, sourceUrl)
+    const notes = provider === 'gemini' ? await callGemini(apiKey, content, sourceUrl)
+      : provider === 'groq' ? await callGroq(apiKey, content, sourceUrl)
       : await callClaude(apiKey, content, sourceUrl);
     renderNotes(notes); hideStatus();
   } catch (e) { showError(e.message); }
@@ -643,6 +661,39 @@ Return ONLY a valid JSON array, no markdown fences:
   if (!match) throw new Error('Unexpected response. Try again or switch to Sonnet 4.6.');
   const notes = JSON.parse(match[0]);
   if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned. Try with more content.');
+  return notes;
+}
+
+async function callGroq(apiKey, content, sourceUrl) {
+  const model = $('modelSel').value;
+  const system = `You are an expert at creating atomic notes for Obsidian using the Zettelkasten method.
+Rules: Extract 3-7 key concepts, write one atomic note per concept. Each note is self-contained but uses [[wikilinks]] to reference related concepts. 150-280 words per note body. Tags: 2-4, lowercase, hyphens. Add aliases if concept has synonyms. End with ## Sources.
+Return ONLY a valid JSON array, no markdown fences:
+[{"filename":"slug.md","title":"Title","tags":["tag"],"preview":"One sentence.","content":"---\\ntitle: Title\\ntags: [tag1]\\naliases: []\\n---\\n# Title\\n\\nBody...\\n\\n## Sources\\n- URL"}]`;
+  const user = (sourceUrl ? `Source: ${sourceUrl}\n\n` : '') + `Content:\n${content.slice(0,13000)}`;
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+      temperature: 0.2, max_tokens: 4096
+    })
+  });
+
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    const msg = e?.error?.message || 'Groq API error ' + res.status;
+    if (res.status === 401) throw new Error('Invalid Groq API key. Get a free key at console.groq.com/keys');
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  const raw = data.choices?.[0]?.message?.content || '';
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('Unexpected Groq response. Try again.');
+  const notes = JSON.parse(match[0]);
+  if (!Array.isArray(notes) || !notes.length) throw new Error('No notes returned.');
   return notes;
 }
 
