@@ -443,12 +443,16 @@
           </select>
           <span class="cost-hint" id="costHint">~$0.003 / article with Haiku</span>
         </div>
-        <button class="btn-generate" id="genBtn">
-          <div class="spin" id="spin"></div>
-          <span id="genLabel">⬡ Generate notes</span>
-        </button>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn-generate" id="genBtn">
+            <div class="spin" id="spin"></div>
+            <span id="genLabel">⬡ Generate notes</span>
+          </button>
+          <button onclick="addBatchItem()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);font-size:13px;padding:10px 16px;border-radius:8px;cursor:pointer;transition:all 0.15s" title="Process multiple articles at once">+ Add article</button>
+        </div>
       </div>
     </div>
+    <div id="batchItems"></div>
 
     <div class="status" id="status"></div>
     <div id="output"></div>
@@ -698,16 +702,35 @@ async function generate() {
   if (!content || content.length < 100) { showError('Paste some article content first.'); return; }
 
   $('genBtn').disabled = true; $('spin').style.display = 'block'; $('genLabel').textContent = 'Extracting…';
-  showLoading('Sending to Claude API…'); $('output').innerHTML = '';
+  $('output').innerHTML = '';
 
-  try {
-    const notes = provider === 'free' ? await callFree(content, sourceUrl)
-      : provider === 'gemini' ? await callGemini(apiKey, content, sourceUrl)
-      : provider === 'groq' ? await callGroq(apiKey, content, sourceUrl)
-      : await callClaude(apiKey, content, sourceUrl);
-    renderNotes(notes); hideStatus();
-  } catch (e) { showError(e.message); }
-  finally { $('genBtn').disabled = false; $('spin').style.display = 'none'; $('genLabel').textContent = '⬡ Generate notes'; }
+  // Collect all content (main + batch)
+  const allContent = [{ text: content, src: sourceUrl }];
+  getBatchItems().forEach(t => allContent.push({ text: t, src: '' }));
+
+  const allNotes = [];
+  let hasError = false;
+
+  for (let i = 0; i < allContent.length; i++) {
+    const { text: t, src } = allContent[i];
+    if (allContent.length > 1) showLoading(`Processing article ${i+1}/${allContent.length}…`);
+    else showLoading('Generating notes…');
+    try {
+      const notes = provider === 'free' ? await callFree(t, src)
+        : provider === 'gemini' ? await callGemini(apiKey, t, src)
+        : provider === 'groq' ? await callGroq(apiKey, t, src)
+        : await callClaude(apiKey, t, src);
+      allNotes.push(...notes);
+    } catch (e) {
+      showError(`Article ${i+1}: ${e.message}`);
+      hasError = true;
+      break;
+    }
+  }
+
+  if (allNotes.length) { renderNotes(allNotes); if (!hasError) hideStatus(); }
+  $('genBtn').disabled = false; $('spin').style.display = 'none';
+  $('genLabel').textContent = '⬡ Generate notes';
 }
 
 async function callClaude(apiKey, content, sourceUrl) {
@@ -937,6 +960,34 @@ function flash(btn,msg,orig,ms=1800){btn.textContent=msg;btn.classList.add('ok')
 function showLoading(msg){const s=$('status');s.className='status loading';s.innerHTML=`<div class="spin" style="display:block;flex-shrink:0"></div>${esc(msg)}`;}
 function showError(msg){const s=$('status');s.className='status error';s.textContent='⚠ '+msg;}
 function hideStatus(){$('status').className='status';}
+
+// Batch mode
+let batchCount = 0;
+function addBatchItem() {
+  batchCount++;
+  const id = `batch${batchCount}`;
+  const container = $('batchItems');
+  const div = document.createElement('div');
+  div.id = id;
+  div.style.cssText = 'margin-top:12px;position:relative';
+  div.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:12px;color:var(--muted)">Article ${batchCount + 1}</span>
+      <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1">×</button>
+    </div>
+    <textarea id="${id}text" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:12px 14px;outline:none;resize:none;min-height:100px;font-family:Inter,sans-serif" placeholder="Paste article ${batchCount + 1} here…"></textarea>`;
+  container.appendChild(div);
+  div.querySelector('textarea').focus();
+}
+
+function getBatchItems() {
+  const items = [];
+  for (let i = 1; i <= batchCount; i++) {
+    const ta = document.getElementById(`batch${i}text`);
+    if (ta && ta.value.trim().length > 50) items.push(ta.value.trim());
+  }
+  return items;
+}
 
 function parseNotes(raw, label) {
   // 1. Extract JSON array — take the longest match (reasoning models write JSON last)
