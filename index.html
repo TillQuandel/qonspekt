@@ -235,8 +235,9 @@
       <p class="hero-sub">Paste any article. AI extracts the key concepts and writes <strong>3–7 atomic Obsidian notes</strong> with frontmatter, tags, aliases, and <code style="font-size:14px;background:rgba(124,58,237,0.15);padding:1px 6px;border-radius:4px;color:var(--accent2)">[[wikilinks]]</code>. Works with <strong>Gemini (free)</strong> or Claude.</p>
       <div class="hero-ctas">
         <button class="btn-hero btn-hero-primary" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">⬡ Generate notes free</button>
-        <a class="btn-hero btn-hero-ghost" href="https://github.com/Qonspekt/qonspekt" target="_blank">★ Star on GitHub</a>
+        <a class="btn-hero btn-hero-ghost" href="https://github.com/DerTill123/qonspekt" target="_blank">★ Star on GitHub</a>
       </div>
+      <p style="margin-top:14px;font-size:13px;color:var(--muted)">No API key needed to try — free tier works instantly</p>
     </div>
 
     <!-- Animated typewriter -->
@@ -353,7 +354,7 @@
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div><div class="step-title">Claude finds the concepts</div><div class="step-desc">Using your own API key, Claude identifies the key ideas worth keeping and writes each as a clean atomic note with wikilinks.</div></div>
+      <div><div class="step-title">AI finds the concepts</div><div class="step-desc">Free or with your own API key — the AI identifies the key ideas worth keeping and writes each as a clean atomic note with wikilinks.</div></div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
@@ -371,8 +372,8 @@
     </div>
 
     <div id="disclaimer">
-      <strong>One thing before you start:</strong> Only process content you have the right to use — your own notes, openly licensed articles, or content for personal research. This tool is entirely client-side. Nothing is sent to any server except the Claude API via your own key.
-      <br><button class="btn-ack" onclick="document.getElementById('disclaimer').style.display='none';localStorage.setItem('qonspekt_ack','1')">I understand →</button>
+      Only process content you have the right to use. Nothing is sent to any server except the AI API via your own key.
+      <button class="btn-ack" onclick="document.getElementById('disclaimer').style.display='none';localStorage.setItem('qonspekt_ack','1')" style="margin-left:12px">Got it</button>
     </div>
 
     <!-- Provider selector -->
@@ -498,8 +499,7 @@
     </a>
   </div>
   <div style="margin-bottom:12px">
-    <a href="https://github.com/Qonspekt/qonspekt" target="_blank">GitHub</a>
-    <a href="https://dertill123.github.io/qonspekt-site/blog/" target="_blank">Blog</a>
+    <a href="https://github.com/DerTill123/qonspekt" target="_blank">GitHub</a>
     <a href="https://console.anthropic.com" target="_blank">Get API Key</a>
   </div>
   Qonspekt runs entirely in your browser. Your content and API key are never stored on any server.
