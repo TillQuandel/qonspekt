@@ -1,5 +1,8 @@
 # Qonspekt ⬡
 
+> **Status: archived (July 2026).** Qonspekt is no longer maintained. The idea lives on in [atomic-notes](https://github.com/TillQuandel/atomic-notes).
+
+
 > Turn any article into atomic Obsidian notes — in seconds.
 
 **[→ Try it live](https://qonspekt.github.io/qonspekt/)**
