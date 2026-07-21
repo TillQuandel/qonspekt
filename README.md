@@ -5,11 +5,9 @@
 
 > Turn any article into atomic Obsidian notes — in seconds.
 
-**[→ Try it live](https://qonspekt.github.io/qonspekt/)**
+**[→ Try it live](https://tillquandel.github.io/qonspekt/)**
 
 Paste any article. Get 3–7 Obsidian-ready atomic notes with frontmatter, tags, and `[[wikilinks]]`. Download as `.zip`. Share via link. No account, no backend, no tracking.
-
-![Qonspekt Demo](https://qonspekt.github.io/qonspekt/demo.png)
 
 ## How it works
 
@@ -32,12 +30,12 @@ Qonspekt has **no backend**. Your API key and content are never sent to any serv
 
 ## Usage
 
-Just open [qonspekt](https://qonspekt.github.io/qonspekt/) in your browser.
+Just open [qonspekt](https://tillquandel.github.io/qonspekt/) in your browser.
 
 Or run locally:
 
 ```bash
-git clone https://github.com/Qonspekt/qonspekt
+git clone https://github.com/TillQuandel/qonspekt
 cd qonspekt
 open index.html  # or just double-click
 ```
